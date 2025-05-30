@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # 🤖 智能文档处理系统
+  ocr-system:
+    build: .
+    container_name: intelligent-document-processing
+    ports:
+      - "8000:8000"
+    volumes:
+      # 数据持久化
+      - ./uploads:/app/uploads
+      - ./vector:/app/vector
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      # API密钥通过环境变量传递（可选，也可直接在代码中配置）
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-your-api-key-here}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 📊 可选：监控服务（如果需要）
+  # portainer:
+  #   image: portainer/portainer-ce:latest
+  #   container_name: portainer
+  #   ports:
+  #     - "9000:9000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - portainer_data:/data
+  #   restart: unless-stopped
+
+# volumes:
+#   portainer_data: 

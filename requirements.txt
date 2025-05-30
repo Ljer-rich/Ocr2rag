@@ -1,0 +1,44 @@
+# 🚀 智能文档处理系统 - 依赖包列表
+# Python 3.8+ 支持
+
+# 📦 Web框架
+fastapi==0.104.1          # 现代、快速的Web框架
+uvicorn[standard]==0.24.0 # ASGI服务器
+python-multipart==0.0.6   # 文件上传支持
+jinja2==3.1.2             # 模板引擎
+aiofiles==23.2.1          # 异步文件处理
+
+# 🖼️ 图片处理
+pillow==10.0.1            # 图片处理库
+
+# 🤖 AI模型与服务
+dashscope==1.17.0         # 阿里云AI模型服务
+torch>=1.9.0              # PyTorch深度学习框架
+transformers>=4.21.0      # Hugging Face模型库
+sentence-transformers>=2.2.0  # 句子嵌入模型
+
+# 🔍 向量搜索
+faiss-cpu>=1.7.0          # 向量相似性搜索（CPU版本）
+# faiss-gpu>=1.7.0        # GPU版本（如果有CUDA）
+
+# 📚 LangChain生态
+langchain>=0.1.0          # LangChain核心库
+langchain-community>=0.0.10  # LangChain社区扩展
+
+# 📄 文档处理
+python-docx>=0.8.11      # Word文档处理
+pdfplumber>=0.7.0        # PDF文档解析
+
+# 🔧 其他依赖
+numpy>=1.21.0             # 数值计算
+requests>=2.25.0          # HTTP请求库
+typing-extensions>=4.0.0  # 类型提示扩展
+
+# 📊 可选GPU依赖（如果有NVIDIA GPU）
+# torch-gpu               # GPU版本PyTorch
+# faiss-gpu               # GPU版本FAISS
+
+# 🛠️ 开发依赖（可选）
+# pytest>=6.0.0          # 测试框架
+# black>=21.0.0           # 代码格式化
+# flake8>=3.8.0           # 代码检查 

@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能文档处理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .header-title {
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main-container {
+            height: calc(100vh - 120px);
+            display: flex;
+            padding: 0 20px 20px 20px;
+            gap: 20px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .right-panel {
+            width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .query-interface {
+            background: rgba(248, 249, 250, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(0, 123, 255, 0.05);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .upload-area:hover {
+            border-color: #0056b3;
+            background: rgba(0, 123, 255, 0.1);
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .query-input {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            padding: 1rem;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .query-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+            background: linear-gradient(45deg, #0056b3, #004085);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+        }
+        
+        .progress-container {
+            background: rgba(248, 249, 250, 0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+        
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(0, 123, 255, 0.1);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .step-indicator.active i {
+            color: #007bff !important;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .step-indicator.completed i {
+            color: #28a745 !important;
+        }
+        
+        .step-text {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .step-indicator.active .step-text {
+            color: #007bff;
+            font-weight: 600;
+        }
+        
+        .step-indicator.completed .step-text {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .answer-section {
+            background: rgba(248, 249, 250, 0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #28a745;
+        }
+        
+        .answer-image-container {
+            margin: 1rem 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .answer-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .answer-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .image-error {
+            padding: 1rem;
+            color: #6c757d;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            background: rgba(248, 249, 250, 0.5);
+        }
+        
+        .search-results {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            background: rgba(248, 249, 250, 0.9);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #007bff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .result-item:hover {
+            background: rgba(0, 123, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .result-score {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .confidence-badge {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 1rem 0;
+        }
+        
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .streaming-cursor {
+            color: #007bff;
+            font-weight: 500;
+        }
+        
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        
+        .streaming-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-family: inherit;
+        }
+        
+        .streaming-text-container {
+            margin: 1rem 0;
+        }
+        
+        .streaming-text-final {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-family: inherit;
+            color: #333;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部工具栏 -->
+    <div class="header-bar">
+        <div class="header-title">
+            <h2 class="fw-bold mb-0">
+                <i class="fas fa-brain me-3"></i>智能文档处理系统
+            </h2>
+            <small class="header-subtitle">AI驱动的智能查询与解答系统</small>
+        </div>
+        <div class="header-buttons">
+            <button class="btn header-btn" data-bs-toggle="modal" data-bs-target="#documentModal">
+                <i class="fas fa-file-alt me-2"></i>文档管理
+            </button>
+            <button class="btn header-btn" onclick="showHelp()">
+                <i class="fas fa-question-circle me-2"></i>帮助
+            </button>
+            <button class="btn header-btn" onclick="debugSystem()">
+                <i class="fas fa-bug me-2"></i>调试
+            </button>
+        </div>
+                    </div>
+                    
+    <div class="main-container">
+        <!-- 左侧主界面 -->
+        <div class="left-panel">
+            <!-- 统一查询界面 -->
+            <div class="query-interface">
+                <h3 class="text-center mb-3">
+                    <i class="fas fa-search me-2"></i>智能查询
+                </h3>
+                
+                <form id="unifiedQueryForm" enctype="multipart/form-data">
+                    <!-- 图片上传区域 -->
+                        <div class="upload-area" id="uploadArea">
+                        <div id="uploadPrompt">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="text-primary">拖拽图片到此处或点击选择（可选）</h5>
+                            <p class="text-muted">支持 PNG, JPG, JPEG 格式</p>
+                            <input type="file" id="fileInput" name="file" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open me-2"></i>选择图片
+                            </button>
+                        </div>
+                        <div id="imagePreview" style="display: none;">
+                            <img id="previewImg" class="image-preview" alt="预览图片">
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearImage()">
+                                    <i class="fas fa-times me-1"></i>移除图片
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 文字查询区域 -->
+                    <div class="mb-3">
+                        <label for="queryInput" class="form-label fw-bold">问题描述 <span class="text-muted small">(可选)</span></label>
+                        <textarea 
+                            class="form-control query-input" 
+                            id="queryInput" 
+                            name="query" 
+                            rows="4" 
+                            placeholder="请描述您的问题，或直接上传图片..."
+                        ></textarea>
+                    </div>
+                    
+                    <!-- 查询配置 -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="searchScope" class="form-label">检索范围</label>
+                            <select class="form-select" id="searchScope" name="file_ids">
+                                <option value="">搜索所有文档</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="resultLimit" class="form-label">结果数量</label>
+                            <select class="form-select" id="resultLimit" name="top_k">
+                                <option value="3">3 个结果</option>
+                                <option value="5" selected>5 个结果</option>
+                                <option value="10">10 个结果</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 查询按钮 -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg me-3" id="queryButton">
+                            <i class="fas fa-robot me-2"></i>智能查询
+                        </button>
+                        <button type="button" class="btn btn-danger btn-lg me-3" id="cancelButton" style="display: none;">
+                            <i class="fas fa-stop me-2"></i>取消查询
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
+                            <i class="fas fa-redo me-2"></i>重置
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 进度显示 -->
+            <div class="progress-container" id="progressContainer">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-primary mb-0">
+                        <i class="fas fa-hourglass-half me-2"></i>查询进度
+                    </h5>
+                    <span id="progressPercent" class="badge bg-primary">0%</span>
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="d-flex justify-content-center align-items-center">
+                    <i id="progressIcon" class="fas fa-spinner fa-spin text-primary me-2"></i>
+                    <small id="progressStep" class="text-muted">初始化...</small>
+                </div>
+                
+                <!-- 步骤指示器 -->
+                            <div class="mt-3">
+                    <div class="d-flex justify-content-between text-center small">
+                        <div class="step-indicator" id="step1">
+                            <i class="fas fa-camera text-muted"></i>
+                            <div class="step-text">图片识别</div>
+                        </div>
+                        <div class="step-indicator" id="step2">
+                            <i class="fas fa-search text-muted"></i>
+                            <div class="step-text">文档检索</div>
+                        </div>
+                        <div class="step-indicator" id="step3">
+                            <i class="fas fa-brain text-muted"></i>
+                            <div class="step-text">生成答案</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 答案显示区域 -->
+            <div id="answerSection" style="display: none;">
+                <div class="answer-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="text-success mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>AI智能解答
+                        </h4>
+                        <span id="confidenceBadge" class="confidence-badge"></span>
+                    </div>
+                    
+                    <div id="answerContent" class="mb-3" style="line-height: 1.6; white-space: pre-wrap;"></div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-database me-1"></i>
+                            基于 <span id="sourceCount">0</span> 个知识源：
+                            <span id="sourceList"></span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 错误显示区域 -->
+            <div id="errorSection" style="display: none;">
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>查询失败
+                    </h5>
+                    <p id="errorMessage" class="mb-0"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧检索结果面板 -->
+        <div class="right-panel">
+            <h5 class="fw-bold text-primary mb-3">
+                <i class="fas fa-list me-2"></i>检索结果
+                <span id="resultCount" class="badge bg-primary ms-2">0</span>
+            </h5>
+            
+            <div id="searchResults" class="search-results">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <p>输入问题或上传图片开始查询</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 文档管理模态框 -->
+    <div class="modal fade" id="documentModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt me-2"></i>文档管理
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="documentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button" role="tab">
+                                <i class="fas fa-upload me-2"></i>文档上传
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-panel" type="button" role="tab">
+                                <i class="fas fa-history me-2"></i>处理历史
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="documentTabContent">
+                        <!-- 文档上传面板 -->
+                        <div class="tab-pane fade show active" id="upload-panel" role="tabpanel">
+                            <form id="documentForm" enctype="multipart/form-data">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="delimiter" class="form-label">分割符</label>
+                                        <input type="text" class="form-control" id="delimiter" name="delimiter" value="@@" placeholder="输入文档分割符">
+                                        <div class="form-text">用于分割文档内容的标识符</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="keepDelimiter" class="form-label">保留分割符</label>
+                                        <select class="form-select" id="keepDelimiter" name="keep_delimiter">
+                                            <option value="false">否</option>
+                                            <option value="true">是</option>
+                                        </select>
+                                        <div class="form-text">是否在分割后的内容中保留分割符</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="upload-area" id="documentUploadArea">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-upload fa-3x text-primary mb-3"></i>
+                                    </div>
+                                    <h4 class="text-primary mb-3">拖拽文档到此处或点击选择文件</h4>
+                                    <p class="text-muted mb-3">支持 TXT, DOCX, PDF 格式（最大50MB）</p>
+                                    <input type="file" id="documentInput" name="file" accept=".txt,.docx,.pdf" style="display: none;">
+                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('documentInput').click()">
+                                        <i class="fas fa-folder-open me-2"></i>选择文档
+                                    </button>
+                                </div>
+                                
+                                <div id="documentPreview" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-file me-2"></i>
+                                        <span id="documentName"></span>
+                                        <span class="badge bg-primary ms-2" id="documentSize"></span>
+                                    </div>
+                                    <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-cogs me-2"></i>开始处理
+                                </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-lg ms-2" onclick="resetDocumentForm()">
+                                    <i class="fas fa-redo me-2"></i>重新选择
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                            <div class="text-center mt-4" id="documentLoading" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">处理中...</span>
+                        </div>
+                                <p class="mt-3 text-primary fw-bold">正在处理文档并创建向量索引，请稍候...</p>
+                    </div>
+                    
+                            <div id="documentResult" class="mt-4" style="display: none;"></div>
+            </div>
+            
+                        <!-- 处理历史面板 -->
+                        <div class="tab-pane fade" id="history-panel" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">文档处理历史</h5>
+                                <button class="btn btn-outline-primary" onclick="loadDocumentHistory()">
+                                    <i class="fas fa-sync-alt me-2"></i>刷新
+                                </button>
+                    </div>
+                            <div id="documentHistory" class="document-list">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>加载中...
+                </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let selectedFile = null;
+        let currentQuerySession = null;
+        let progressTimer = null;
+        let accumulatedText = ''; // 累积的文本内容
+        let processedTextLength = 0; // 已经处理过的文本长度
+        
+        // DOM元素
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const queryForm = document.getElementById('unifiedQueryForm');
+        const queryButton = document.getElementById('queryButton');
+        const cancelButton = document.getElementById('cancelButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressStep = document.getElementById('progressStep');
+        const answerSection = document.getElementById('answerSection');
+        const errorSection = document.getElementById('errorSection');
+        const searchResults = document.getElementById('searchResults');
+        
+        // 文件拖拽功能
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        // 处理文件选择
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('请选择图片文件！');
+                return;
+            }
+            
+            selectedFile = file;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('uploadPrompt').style.display = 'none';
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 清除图片
+        function clearImage() {
+            selectedFile = null;
+            fileInput.value = '';
+            document.getElementById('uploadPrompt').style.display = 'block';
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+        
+        // 表单提交 - 使用新的分步查询
+        queryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const queryText = document.getElementById('queryInput').value.trim();
+            
+            if (!queryText && !selectedFile) {
+                showError('请输入问题或上传图片！');
+                return;
+            }
+            
+            await startProgressiveQuery();
+        });
+        
+        // 开始分步查询
+        async function startProgressiveQuery() {
+            try {
+                console.log('=== 开始分步查询 ===');
+                
+                // 1. 启动查询会话
+                console.log('启动查询会话...');
+                const startResponse = await fetch('/start-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const startData = await startResponse.json();
+                if (!startData.success) {
+                    showError('启动查询失败');
+                    return;
+                }
+                
+                currentQuerySession = startData.session_id;
+                console.log(`会话已创建: ${currentQuerySession}`);
+                
+                // 显示进度界面
+                showProgress();
+                
+                // 2. 启动异步查询任务
+                console.log('启动异步查询任务...');
+                const formData = new FormData();
+                formData.append('query', document.getElementById('queryInput').value.trim());
+                if (selectedFile) {
+                    formData.append('file', selectedFile);
+                    console.log(`已添加文件: ${selectedFile.name}`);
+                }
+                formData.append('file_ids', document.getElementById('searchScope').value);
+                formData.append('top_k', document.getElementById('resultLimit').value);
+                
+                const executeResponse = await fetch(`/execute-query/${currentQuerySession}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const executeData = await executeResponse.json();
+                console.log('异步任务启动结果:', executeData);
+                
+                if (executeResponse.ok && executeData.success) {
+                    console.log('异步任务已启动，开始进度监控...');
+                    // 3. 开始进度监控
+                    startProgressMonitoring();
+                } else {
+                    showError(executeData.error || '启动异步查询失败');
+                    hideProgress();
+                    currentQuerySession = null;
+                }
+                
+            } catch (error) {
+                console.error('启动查询失败:', error);
+                showError('网络错误，请稍后重试');
+                hideProgress();
+                currentQuerySession = null;
+            }
+        }
+        
+        // 取消查询
+        cancelButton.addEventListener('click', async () => {
+            if (!currentQuerySession) return;
+            
+            console.log(`正在取消查询会话: ${currentQuerySession}`);
+            
+            try {
+                const response = await fetch(`/cancel-query/${currentQuerySession}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showError('查询已取消');
+                } else {
+                    showError('取消失败: ' + (data.message || '未知错误'));
+                }
+                
+            } catch (error) {
+                console.error('取消查询失败:', error);
+                showError('取消请求失败');
+            } finally {
+                // 无论成功失败都清理状态
+                stopProgressMonitoring();
+                hideProgress();
+                currentQuerySession = null;
+                console.log('查询会话已清理');
+            }
+        });
+        
+        // 开始进度监控
+        function startProgressMonitoring() {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+            }
+            
+            let requestCount = 0;
+            const maxRequests = 120; // 最多查询2分钟 (120 * 1000ms = 2分钟)
+            
+            console.log(`开始进度监控，会话ID: ${currentQuerySession}`);
+            
+            progressTimer = setInterval(async () => {
+                if (!currentQuerySession) {
+                    console.log('会话ID丢失，停止监控');
+                    stopProgressMonitoring();
+                    return;
+                }
+                
+                requestCount++;
+                if (requestCount > maxRequests) {
+                    console.log('进度查询超时，停止监控');
+                    stopProgressMonitoring();
+                    showError('查询超时，请重试');
+                    hideProgress();
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/query-progress/${currentQuerySession}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`进度更新 #${requestCount}:`, data);
+                    
+                    if (data.success) {
+                        // 更新进度显示
+                        updateProgress(data.progress, data.step);
+                        
+                        // 检查是否有检索结果可以立即显示
+                        if (data.search_results && data.search_results.length > 0) {
+                            console.log(`显示中间结果: ${data.search_results.length} 个`);
+                            showSearchResults(data.search_results);
+                        }
+                        
+                        // 检查查询状态
+                        if (data.status === 'completed' || data.status === 'error' || data.status === 'cancelled') {
+                            console.log(`查询状态: ${data.status}, 停止进度监控`);
+                            stopProgressMonitoring();
+                            
+                            if (data.status === 'error') {
+                                showError(data.error || '查询失败');
+                                hideProgress();
+                            } else if (data.status === 'cancelled') {
+                                showError('查询已取消');
+                                hideProgress();
+                            } else if (data.status === 'completed' && data.result) {
+                                // 查询完成（无需流式生成的情况）
+                                console.log('查询完成');
+                                
+                                if (data.result.success) {
+                                    // 有结果但不需要流式生成
+                                    showAnswer(data.result);
+                                    showSearchResults(data.result.results);
+                                    hideProgress();
+                                    currentQuerySession = null;
+                                } else {
+                                    // 查询失败
+                                    showError(data.result.error || '查询失败');
+                                    hideProgress();
+                                    currentQuerySession = null;
+                                }
+                            }
+                        } else if (data.status === 'streaming' && data.result) {
+                            // 流式生成阶段的特殊处理
+                            console.log('=== 前端进入流式生成阶段 ===');
+                            console.log('data.result详情:', data.result);
+                            console.log('data.result.success:', data.result.success);
+                            console.log('data.result.stream_ready:', data.result.stream_ready);
+                            
+                            if (data.result.success) {
+                                // 显示检索结果
+                                if (data.result.results && data.result.results.length > 0) {
+                                    showSearchResults(data.result.results);
+                                    console.log(`显示检索结果: ${data.result.results.length} 条`);
+                                }
+                                
+                                // 检查是否准备好流式生成
+                                if (data.result.stream_ready) {
+                                    // 准备好了，停止进度监控并开始流式生成
+                                    console.log('=== 前端准备调用startStreamingAnswer ===');
+                                    console.log('当前会话ID:', currentQuerySession);
+                                    console.log('结果数据类型:', typeof data.result);
+                                    
+                                    stopProgressMonitoring();
+                                    
+                                    console.log('=== 前端开始调用startStreamingAnswer ===');
+                                    try {
+                                        startStreamingAnswer(currentQuerySession, data.result);
+                                        console.log('=== startStreamingAnswer调用完成 ===');
+                                    } catch (error) {
+                                        console.error('=== startStreamingAnswer调用失败 ===');
+                                        console.error('错误:', error);
+                                        showError(`流式生成启动失败: ${error.message}`);
+                                        hideProgress();
+                                        currentQuerySession = null;
+                                    }
+                                } else {
+                                    // 未准备好流式生成，继续等待，不停止进度监控
+                                    console.log('流式生成未就绪，继续等待...');
+                                    // 不执行任何停止操作，继续下一次轮询
+                                }
+                            } else {
+                                // 查询失败
+                                console.error('查询失败:', data.result.error);
+                                stopProgressMonitoring();
+                                showError(data.result.error || '查询失败');
+                                hideProgress();
+                                currentQuerySession = null;
+                            }
+                        }
+                    } else {
+                        console.error('获取进度失败:', data);
+                        if (requestCount > 10) { // 增加容错次数
+                            stopProgressMonitoring();
+                            showError('进度获取失败，请重试');
+                            hideProgress();
+                        }
+                    }
+                } catch (error) {
+                    console.error('获取进度失败:', error);
+                    
+                    // 根据错误类型和请求次数决定是否停止
+                    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                        // 网络连接错误，给更多重试机会
+                        if (requestCount > 15) {
+                            stopProgressMonitoring();
+                            showError('网络连接超时，请检查网络后重试');
+                            hideProgress();
+                        }
+                    } else if (error.message.includes('404') || error.message.includes('500')) {
+                        // 服务器错误，较少重试次数
+                        if (requestCount > 5) {
+                            stopProgressMonitoring();
+                            showError('服务器错误，请稍后重试');
+                            hideProgress();
+                        }
+                    } else {
+                        // 其他错误，中等容错
+                        if (requestCount > 8) {
+                            stopProgressMonitoring();
+                            showError(`查询出错: ${error.message}`);
+                            hideProgress();
+                        }
+                    }
+                }
+            }, 800); // 改为800ms，更频繁的更新
+        }
+        
+        // 停止进度监控
+        function stopProgressMonitoring() {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+        }
+        
+        // 更新进度
+        function updateProgress(percent, step) {
+            console.log(`更新进度: ${percent}% - ${step}`);
+            
+            progressBar.style.width = percent + '%';
+            progressPercent.textContent = percent + '%';
+            progressStep.textContent = step;
+            
+            // 更新进度图标
+            const progressIcon = document.getElementById('progressIcon');
+            
+            // 重置所有步骤指示器
+            document.querySelectorAll('.step-indicator').forEach(indicator => {
+                indicator.classList.remove('active', 'completed');
+            });
+            
+            // 根据步骤内容更新指示器和图标
+            if (step.includes('OCR') || step.includes('图片')) {
+                // 图片识别步骤
+                console.log('激活步骤1: 图片识别');
+                document.getElementById('step1').classList.add('active');
+                progressIcon.className = 'fas fa-camera text-primary me-2';
+            } else if (step.includes('检索') || step.includes('搜索')) {
+                // 文档检索步骤
+                console.log('激活步骤2: 文档检索');
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step2').classList.add('active');
+                progressIcon.className = 'fas fa-search text-primary me-2';
+            } else if (step.includes('生成') || step.includes('解答')) {
+                // 生成答案步骤
+                console.log('激活步骤3: 生成答案');
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step2').classList.add('completed');
+                document.getElementById('step3').classList.add('active');
+                progressIcon.className = 'fas fa-brain text-primary me-2';
+            } else if (step.includes('完成')) {
+                // 全部完成
+                console.log('所有步骤完成');
+                document.querySelectorAll('.step-indicator').forEach(indicator => {
+                    indicator.classList.add('completed');
+                    indicator.classList.remove('active');
+                });
+                progressIcon.className = 'fas fa-check-circle text-success me-2';
+            } else {
+                // 初始化或其他状态
+                console.log('初始化状态');
+                progressIcon.className = 'fas fa-spinner fa-spin text-primary me-2';
+            }
+            
+            // 对于纯文字查询，隐藏图片识别步骤
+            if (!selectedFile && step.includes('准备检索')) {
+                console.log('纯文字查询，跳过图片步骤');
+                document.getElementById('step1').style.opacity = '0.3';
+                document.getElementById('step1').querySelector('.step-text').textContent = '跳过';
+            }
+        }
+        
+        // 显示进度
+        function showProgress() {
+            progressContainer.style.display = 'block';
+            queryButton.style.display = 'none';
+            cancelButton.style.display = 'inline-block';
+            answerSection.style.display = 'none';
+            errorSection.style.display = 'none';
+            
+            // 重置步骤指示器
+            document.querySelectorAll('.step-indicator').forEach(indicator => {
+                indicator.classList.remove('active', 'completed');
+                indicator.style.opacity = '1';
+            });
+            
+            // 重置步骤文本
+            document.getElementById('step1').querySelector('.step-text').textContent = '图片识别';
+            document.getElementById('step2').querySelector('.step-text').textContent = '文档检索';
+            document.getElementById('step3').querySelector('.step-text').textContent = '生成答案';
+            
+            updateProgress(0, '正在初始化...');
+        }
+        
+        // 隐藏进度
+        function hideProgress() {
+            progressContainer.style.display = 'none';
+            queryButton.style.display = 'inline-block';
+            cancelButton.style.display = 'none';
+        }
+        
+        // 显示答案
+        function showAnswer(data) {
+            // 处理答案文本中的图片URL和其他链接
+            const processedAnswer = processAllUrls(data.answer);
+            
+            document.getElementById('answerContent').innerHTML = processedAnswer;
+            document.getElementById('confidenceBadge').textContent = `置信度: ${(data.confidence * 100).toFixed(1)}%`;
+            document.getElementById('sourceCount').textContent = data.used_sources.length;
+            document.getElementById('sourceList').textContent = data.used_sources.join(', ');
+            
+            answerSection.style.display = 'block';
+            errorSection.style.display = 'none';
+            
+            // 为图片添加点击放大功能
+            document.querySelectorAll('.answer-image').forEach(img => {
+                img.addEventListener('click', function() {
+                    showImageModal(this.src);
+                });
+            });
+        }
+        
+        // 显示图片放大模态框
+        function showImageModal(imageSrc) {
+            // 创建模态框HTML
+            const modalHtml = `
+                <div class="modal fade" id="imageModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">图片预览</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="${imageSrc}" class="img-fluid" style="max-height: 70vh;">
+                            </div>
+                            <div class="modal-footer">
+                                <a href="${imageSrc}" target="_blank" class="btn btn-primary">
+                                    <i class="fas fa-external-link-alt me-2"></i>在新窗口打开
+                                </a>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 移除现有的图片模态框
+            const existingModal = document.getElementById('imageModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 添加新的模态框
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
+            
+            // 模态框关闭时移除元素
+            document.getElementById('imageModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
+        
+        // 显示检索结果
+        function showSearchResults(results) {
+            document.getElementById('resultCount').textContent = results.length;
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-search-minus fa-3x mb-3"></i>
+                        <p>未找到相关内容</p>
+                </div>
+            `;
+                return;
+            }
+            
+            const resultsHtml = results.map((result, index) => `
+                <div class="result-item" onclick="highlightResult(${index})">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <small class="fw-bold text-primary">${result.source_file}</small>
+                        <span class="result-score">相似度: ${(1 - result.score).toFixed(3)}</span>
+                    </div>
+                    <div class="mb-1 small">${processAllUrls(result.content)}</div>
+                    <small class="text-muted">段落 #${result.metadata.segment_index || 0}</small>
+                </div>
+            `).join('');
+            
+            searchResults.innerHTML = resultsHtml;
+            
+            // 为检索结果中的图片添加点击放大功能
+            document.querySelectorAll('#searchResults .answer-image').forEach(img => {
+                img.addEventListener('click', function() {
+                    showImageModal(this.src);
+                });
+            });
+        }
+        
+        // 高亮选中的结果
+        function highlightResult(index) {
+            const items = document.querySelectorAll('.result-item');
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.style.background = 'rgba(0, 123, 255, 0.2)';
+                } else {
+                    item.style.background = 'rgba(248, 249, 250, 0.9)';
+                }
+            });
+        }
+        
+        // 显示错误
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            errorSection.style.display = 'block';
+            answerSection.style.display = 'none';
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('queryInput').value = '';
+            clearImage();
+            document.getElementById('searchScope').value = '';
+            document.getElementById('resultLimit').value = '5';
+            answerSection.style.display = 'none';
+            errorSection.style.display = 'none';
+            hideProgress();
+            searchResults.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <p>输入问题或上传图片开始查询</p>
+                </div>
+            `;
+            document.getElementById('resultCount').textContent = '0';
+        }
+        
+        // 显示帮助
+        function showHelp() {
+            alert(`智能文档处理系统使用说明：
+
+1. 智能查询：
+   - 可以只输入文字问题
+   - 可以只上传错误截图
+   - 也可以同时输入问题和上传图片
+
+2. 查询过程：
+   - 系统会显示实时进度
+   - 可以随时点击"取消查询"中断
+   - 查询分为：图片分析 → 知识库检索 → 生成答案
+
+3. 文档管理：
+   - 点击顶部"文档管理"按钮
+   - 可以上传新文档建立索引
+   - 可以查看和删除已处理的文档
+
+4. 检索结果：
+   - 右侧面板显示相关的知识片段
+   - 点击可以高亮显示
+   - 左侧显示AI生成的智能答案`);
+        }
+        
+        // 调试系统
+        async function debugSystem() {
+            console.log('=== 开始系统调试 ===');
+            
+            try {
+                // 1. 检查系统状态
+                console.log('检查系统状态...');
+                const statusResponse = await fetch('/debug/status');
+                const statusData = await statusResponse.json();
+                console.log('系统状态:', statusData);
+                
+                // 2. 测试简单查询
+                if (confirm('系统状态已输出到控制台。是否测试简单查询功能？')) {
+                    console.log('开始测试简单查询...');
+                    
+                    const testQuery = prompt('输入测试查询内容:', '如何解决系统登录问题？');
+                    if (testQuery) {
+                        const formData = new FormData();
+                        formData.append('query', testQuery);
+                        
+                        const queryResponse = await fetch('/debug/simple-query', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const queryData = await queryResponse.json();
+                        console.log('查询结果:', queryData);
+                        
+                        if (queryData.success) {
+                            alert(`测试查询成功！\n\n检索到 ${queryData.search_results_count} 个结果\n\n答案: ${String(queryData.answer || '').substring(0, 200)}...`);
+                        } else {
+                            alert(`测试查询失败: ${queryData.error}`);
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('调试失败:', error);
+                alert('调试失败，请查看控制台输出');
+            }
+            
+            console.log('=== 系统调试完成 ===');
+        }
+        
+        // 加载可用数据库
+        async function loadAvailableDatabases() {
+            try {
+                const response = await fetch('/knowledge-base/databases');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    const searchScope = document.getElementById('searchScope');
+                    
+                    // 清空现有选项，保留"所有文档"
+                    searchScope.innerHTML = '<option value="">搜索所有文档</option>';
+                    
+                    // 添加可用数据库选项
+                    data.databases.forEach(db => {
+                        const option = document.createElement('option');
+                        option.value = db.file_id;
+                        option.textContent = `${db.filename} (${db.segments_count} 段)`;
+                        searchScope.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载数据库列表失败:', error);
+            }
+        }
+        
+        // 文档上传功能
+        document.getElementById('documentInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('documentName').textContent = file.name;
+                document.getElementById('documentSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                document.getElementById('documentUploadArea').style.display = 'none';
+                document.getElementById('documentPreview').style.display = 'block';
+            }
+        });
+        
+        // 文档表单提交
+        document.getElementById('documentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            document.getElementById('documentLoading').style.display = 'block';
+            document.getElementById('documentPreview').style.display = 'none';
+            
+            try {
+                const response = await fetch('/upload-document', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('documentLoading').style.display = 'none';
+                
+                if (response.ok && data.success) {
+                    document.getElementById('documentResult').innerHTML = `
+                        <div class="alert alert-success">
+                            <h5 class="alert-heading">处理成功！</h5>
+                            <p class="mb-1">文件ID: ${data.file_id}</p>
+                            <p class="mb-1">分割段数: ${data.segments_count}</p>
+                            <p class="mb-0">向量库路径: ${data.vector_db_path}</p>
+                        </div>
+                    `;
+                    document.getElementById('documentResult').style.display = 'block';
+                    
+                    // 刷新数据库列表
+                    loadAvailableDatabases();
+                    
+                    // 清空表单
+                    setTimeout(() => {
+                        resetDocumentForm();
+                    }, 3000);
+                } else {
+                    document.getElementById('documentResult').innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">处理失败</h5>
+                            <p class="mb-0">${data.detail || data.message || '未知错误'}</p>
+                        </div>
+                    `;
+                    document.getElementById('documentResult').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('documentLoading').style.display = 'none';
+                document.getElementById('documentResult').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">处理失败</h5>
+                        <p class="mb-0">网络错误: ${error.message}</p>
+                    </div>
+                `;
+                document.getElementById('documentResult').style.display = 'block';
+            }
+        });
+        
+        // 加载文档处理历史
+        async function loadDocumentHistory() {
+            const historyDiv = document.getElementById('documentHistory');
+            historyDiv.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>加载中...</div>';
+            
+            try {
+                const response = await fetch('/documents');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    if (data.documents.length === 0) {
+                        historyDiv.innerHTML = '<div class="text-center text-muted">暂无处理记录</div>';
+                    } else {
+                        historyDiv.innerHTML = data.documents.map(doc => `
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title mb-1">${doc.original_filename}</h6>
+                                            <p class="text-muted small mb-1">文件ID: ${doc.file_id}</p>
+                                            <p class="text-muted small mb-1">分割段数: ${doc.segments_count}</p>
+                                            <p class="text-muted small mb-0">处理时间: ${new Date(doc.processed_at).toLocaleString()}</p>
+                                        </div>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteDocument('${doc.file_id}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    historyDiv.innerHTML = '<div class="text-center text-danger">加载失败</div>';
+                }
+            } catch (error) {
+                historyDiv.innerHTML = '<div class="text-center text-danger">网络错误</div>';
+            }
+        }
+        
+        // 删除文档
+        async function deleteDocument(fileId) {
+            if (!confirm('确定要删除这个文档及其向量索引吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/documents/${fileId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadDocumentHistory(); // 刷新列表
+                    loadAvailableDatabases(); // 刷新可用数据库
+                } else {
+                    const data = await response.json();
+                    alert('删除失败: ' + (data.detail || '未知错误'));
+                }
+            } catch (error) {
+                alert('删除失败: 网络错误');
+            }
+        }
+        
+        // 重置文档表单
+        function resetDocumentForm() {
+            document.getElementById('documentUploadArea').style.display = 'block';
+            document.getElementById('documentPreview').style.display = 'none';
+            document.getElementById('documentResult').style.display = 'none';
+            document.getElementById('documentInput').value = '';
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAvailableDatabases();
+            
+            // 当文档管理面板显示时，加载历史记录
+            document.getElementById('history-tab').addEventListener('click', function() {
+                loadDocumentHistory();
+            });
+        });
+        
+        // 处理文本中的所有URL（包括非图片链接）
+        function processAllUrls(text) {
+            if (!text) return text;
+            
+            // 确保text是字符串类型
+            const textStr = String(text);
+            
+            console.log('原始文本:', textStr); // 调试日志
+            console.log('文本长度:', textStr.length); // 调试日志
+            
+            // 使用更宽泛的正则表达式匹配URL，包括所有可能的URL字符
+            const allUrlRegex = /(https?:\/\/[^\s<>"'\u2000-\u206F\u2E00-\u2E7F\\!'()[\]{};]+)/gi;
+            
+            // 先找到所有匹配的URL
+            const matches = textStr.match(allUrlRegex);
+            console.log('找到的URL匹配:', matches); // 调试日志
+            
+            return textStr.replace(allUrlRegex, (url, offset, string) => {
+                // 检查这个URL是否已经在HTML标签中
+                const stringStr = String(string || '');
+                const beforeUrl = stringStr.substring(Math.max(0, offset - 20), offset);
+                
+                // 如果URL前面有src="或href="，说明已经被处理过
+                if (beforeUrl.includes('src="') || beforeUrl.includes('href="')) {
+                    console.log('跳过已处理的URL:', url); // 调试日志
+                    return url;
+                }
+                
+                // 清理URL末尾可能的标点符号
+                const cleanUrl = String(url).replace(/[.,;:!?)\]}>、。，；：！？]*$/, '');
+                
+                console.log('匹配到URL:', cleanUrl, '长度:', cleanUrl.length); // 调试日志
+                
+                // 直接显示为图片，如果加载失败则显示链接
+                return `<div class="answer-image-container">
+                    <img src="${cleanUrl}" class="answer-image" alt="图片" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" 
+                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';">
+                    <div class="image-error" style="display: block;">
+                        <i class="fas fa-link text-muted"></i>
+                        <small class="text-muted">加载中...</small>
+                        <br><a href="${cleanUrl}" target="_blank" class="text-primary small">${cleanUrl}</a>
+                    </div>
+                </div>`;
+            });
+        }
+        
+        // 开始流式生成答案
+        async function startStreamingAnswer(sessionId, resultData) {
+            try {
+                console.log('=== startStreamingAnswer函数开始执行 ===');
+                console.log('会话ID:', sessionId);
+                console.log('结果数据:', resultData);
+                console.log('函数调用堆栈:', new Error().stack);
+                
+                // 输入验证
+                if (!sessionId || typeof sessionId !== 'string') {
+                    throw new Error('无效的会话ID');
+                }
+                
+                if (!resultData || typeof resultData !== 'object') {
+                    throw new Error('无效的结果数据');
+                }
+                
+                console.log('=== 输入验证通过，准备答案显示区域 ===');
+                
+                // 准备答案显示区域
+                prepareAnswerStreaming();
+                
+                console.log('=== 准备调用fetch流式API ===');
+                console.log('API URL:', `/stream-answer/${sessionId}`);
+                
+                const response = await fetch(`/stream-answer/${sessionId}`);
+                console.log('=== fetch调用完成 ===');
+                console.log('流式API响应状态:', response.status, response.statusText);
+                console.log('响应headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('流式API错误响应:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                }
+                
+                console.log('=== 开始读取响应流 ===');
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                console.log('开始接收流式数据...');
+                
+                while (true) {
+                    console.log('=== 读取下一个数据块 ===');
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        console.log('流式数据接收完成');
+                        break;
+                    }
+                    
+                    console.log('收到数据块，大小:', value ? value.length : 0);
+                    
+                    // 解码数据
+                    const chunk = decoder.decode(value, { stream: true });
+                    buffer += chunk;
+                    
+                    console.log('当前缓冲区内容:', buffer.substring(0, 100) + (buffer.length > 100 ? '...' : ''));
+                    
+                    // 处理完整的行
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // 保留不完整的行
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                console.log('收到流式数据:', data.type, data.content ? String(data.content).substring(0, 50) + '...' : '');
+                                
+                                // 数据验证
+                                if (!data || typeof data !== 'object' || !data.type) {
+                                    console.warn('收到无效的流式数据:', data);
+                                    continue;
+                                }
+                                
+                                handleStreamChunk(data, resultData);
+                                
+                                if (data.type === 'error') {
+                                    console.error('流式生成错误:', data.content);
+                                    showError(String(data.content || '未知错误'));
+                                    hideProgress();
+                                    currentQuerySession = null;
+                                    return; // 退出函数
+                                }
+                            } catch (e) {
+                                console.error('解析流数据失败:', e, line);
+                                // 继续处理，不中断流式传输
+                            }
+                        }
+                    }
+                }
+                
+                console.log('流式生成成功完成');
+                
+            } catch (error) {
+                console.error('=== startStreamingAnswer函数异常 ===');
+                console.error('错误类型:', error.name);
+                console.error('错误消息:', error.message);
+                console.error('错误堆栈:', error.stack);
+                
+                let errorMessage = '答案生成失败';
+                if (error.message.includes('404')) {
+                    errorMessage = '查询会话已过期，请重新查询';
+                } else if (error.message.includes('400')) {
+                    errorMessage = '查询状态异常，请重新查询';
+                } else if (error.message.includes('网络')) {
+                    errorMessage = '网络连接错误，请检查网络后重试';
+                } else {
+                    errorMessage = `生成失败: ${error.message}`;
+                }
+                
+                showError(errorMessage);
+                hideProgress();
+                currentQuerySession = null;
+            }
+        }
+        
+        // 准备答案流式显示
+        function prepareAnswerStreaming() {
+            // 显示答案区域
+            answerSection.style.display = 'block';
+            errorSection.style.display = 'none';
+            
+            // 显示简单的等待状态
+            document.getElementById('answerContent').innerHTML = '<div class="streaming-text-container"><div class="streaming-cursor">正在等待AI回答<span class="cursor">...</span></div></div>';
+            
+            document.getElementById('confidenceBadge').textContent = '生成中...';
+            document.getElementById('sourceCount').textContent = '0';
+            document.getElementById('sourceList').textContent = '';
+        }
+        
+        // 处理流式数据块
+        function handleStreamChunk(data, resultData) {
+            const answerContent = document.getElementById('answerContent');
+            
+            if (data.type === 'start') {
+                console.log('流式生成开始');
+                
+                // 重置状态
+                accumulatedText = '';
+                processedTextLength = 0; // 现在表示已处理的URL数量
+                window.lastProcessedUrls = []; // 清理之前的URL记录
+                
+                // 准备流式文本显示区域
+                const textContainer = answerContent.querySelector('.streaming-text-container');
+                if (textContainer) {
+                    textContainer.innerHTML = '<div class="streaming-text"><span class="streaming-cursor">|</span></div>';
+                }
+            } else if (data.type === 'chunk') {
+                // 直接处理增量内容
+                if (data.content && typeof data.content === 'string') {
+                    const chunkContent = String(data.content);
+                    console.log('收到增量内容:', chunkContent);
+                    
+                    // 直接处理这个增量chunk
+                    appendIncrementalContent(chunkContent);
+                } else {
+                    console.warn('接收到非字符串内容:', typeof data.content, data.content);
+                }
+            } else if (data.type === 'complete') {
+                // 流式生成完成
+                console.log('流式生成完成');
+                
+                // 最后再检查一次是否有新的URL需要处理，使用改进的URL检测
+                const urlPattern = /https?:\/\/[^\s<>"'\u2000-\u206F\u2E00-\u2E7F\\!'()[\]{};，。\n\r]*[^\s<>"'\u2000-\u206F\u2E00-\u2E7F\\!'()[\]{};，。\n\r\.](?=\s|$|[，。\n\r]|$)/gi;
+                let finalUrls = accumulatedText.match(urlPattern) || [];
+                
+                // 如果没有匹配到，尝试更简单的正则表达式
+                if (finalUrls.length === 0) {
+                    const simpleUrlPattern = /https?:\/\/\S+/gi;
+                    const simpleUrls = accumulatedText.match(simpleUrlPattern) || [];
+                    finalUrls.push(...simpleUrls);
+                }
+                
+                console.log('最终检查URL数量:', finalUrls.length);
+                console.log('最终检查URL列表:', finalUrls);
+                console.log('已处理URL数量:', processedTextLength);
+                
+                // 检查是否有新的或变化的URL
+                let needFinalRender = false;
+                if (finalUrls.length > processedTextLength) {
+                    needFinalRender = true;
+                    console.log('*** 发现未处理的URL ***');
+                } else if (finalUrls.length > 0 && window.lastProcessedUrls) {
+                    // 检查URL内容是否有变化
+                    for (let i = 0; i < finalUrls.length; i++) {
+                        if (window.lastProcessedUrls[i] !== finalUrls[i]) {
+                            needFinalRender = true;
+                            console.log('*** URL内容有变化，需要最终渲染 ***');
+                            break;
+                        }
+                    }
+                }
+                
+                if (needFinalRender) {
+                    console.log('*** 执行最后一次渲染 ***');
+                    console.log('未处理或变化的URL:', finalUrls);
+                    
+                    // 清空当前显示的流式文本
+                    const streamingText = document.querySelector('.streaming-text');
+                    if (streamingText) {
+                        streamingText.innerHTML = '';
+                    }
+                    
+                    // 最后一次完整渲染，确保所有URL都被处理
+                    renderCompleteTextWithUrls(accumulatedText, finalUrls);
+                    
+                    // 更新已处理的URL数量
+                    processedTextLength = finalUrls.length;
+                    window.lastProcessedUrls = [...finalUrls];
+                } else {
+                    console.log('所有URL都已正确处理，无需额外渲染');
+                }
+                
+                // 清理累积状态
+                accumulatedText = '';
+                processedTextLength = 0;
+                window.lastProcessedUrls = [];
+                
+                completeStreamingAnswer(data);
+            }
+        }
+
+        // 增量添加内容（修复URL检测问题）
+        function appendIncrementalContent(newContent) {
+            if (!newContent) return;
+            
+            console.log('=== appendIncrementalContent 开始 ===');
+            console.log('新增内容:', JSON.stringify(newContent));
+            
+            // 将新内容添加到累积文本中
+            accumulatedText += newContent;
+            console.log('累积文本总长度:', accumulatedText.length);
+            console.log('当前累积文本:', accumulatedText);
+            
+            // 改进的URL检测正则表达式，支持URL在文本末尾
+            const urlPattern = /https?:\/\/[^\s<>"'\u2000-\u206F\u2E00-\u2E7F\\!'()[\]{};，。\n\r]*[^\s<>"'\u2000-\u206F\u2E00-\u2E7F\\!'()[\]{};，。\n\r\.](?=\s|$|[，。\n\r]|$)/gi;
+            const urls = accumulatedText.match(urlPattern) || [];
+            
+            // 如果没有匹配到，尝试更简单的正则表达式
+            if (urls.length === 0) {
+                const simpleUrlPattern = /https?:\/\/\S+/gi;
+                const simpleUrls = accumulatedText.match(simpleUrlPattern) || [];
+                urls.push(...simpleUrls);
+            }
+            
+            console.log('检测到的URL数量:', urls.length);
+            console.log('检测到的URL列表:', urls);
+            console.log('已处理URL数量:', processedTextLength);
+            
+            // 检查是否有新的URL或者URL内容发生变化
+            let needRerender = false;
+            let changeReason = '';
+            
+            if (urls.length > processedTextLength) {
+                needRerender = true;
+                changeReason = `发现${urls.length - processedTextLength}个新URL`;
+            } else if (urls.length > 0) {
+                // 检查现有URL是否有变化（比如URL逐步完善）
+                for (let i = 0; i < urls.length; i++) {
+                    if (!window.lastProcessedUrls || window.lastProcessedUrls[i] !== urls[i]) {
+                        needRerender = true;
+                        changeReason = `URL内容发生变化: ${urls[i]}`;
+                        break;
+                    }
+                }
+            }
+            
+            if (needRerender) {
+                console.log('*** 需要重新渲染: ' + changeReason + ' ***');
+                console.log('所有URL:', urls);
+                
+                // 清空当前显示的流式文本
+                const streamingText = document.querySelector('.streaming-text');
+                if (streamingText) {
+                    streamingText.innerHTML = '';
+                }
+                
+                // 重新渲染整个累积文本，按URL分割
+                renderCompleteTextWithUrls(accumulatedText, urls);
+                
+                // 更新已处理的URL数量和内容
+                processedTextLength = urls.length;
+                window.lastProcessedUrls = [...urls]; // 记录当前处理的URL
+                
+            } else {
+                console.log('没有URL变化，只追加新文本');
+                
+                // 没有新URL变化，只需要追加新的文本内容
+                appendTextToStream(newContent);
+            }
+            
+            console.log('=== appendIncrementalContent 结束 ===');
+        }
+        
+        // 重新渲染完整文本，正确处理URL和文本的混合内容
+        function renderCompleteTextWithUrls(fullText, urls) {
+            console.log('=== renderCompleteTextWithUrls 开始 ===');
+            console.log('完整文本长度:', fullText.length);
+            console.log('URL数量:', urls.length);
+            
+            const streamingText = document.querySelector('.streaming-text');
+            if (!streamingText) {
+                console.error('找不到 .streaming-text 元素');
+                return;
+            }
+            
+            let currentPos = 0;
+            
+            // 按照URL在文本中的位置顺序处理
+            for (const url of urls) {
+                const urlIndex = fullText.indexOf(url, currentPos);
+                
+                if (urlIndex >= 0) {
+                    // 输出URL前的文本
+                    if (urlIndex > currentPos) {
+                        const textBefore = fullText.substring(currentPos, urlIndex);
+                        console.log('添加URL前文本:', JSON.stringify(textBefore));
+                        const textNode = document.createTextNode(textBefore);
+                        streamingText.appendChild(textNode);
+                    }
+                    
+                    // 添加图片容器
+                    console.log('添加图片URL:', url);
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'answer-image-container';
+                    imageContainer.innerHTML = `
+                        <img src="${url}" class="answer-image" alt="图片" 
+                             onerror="console.error('图片加载失败:', '${url}'); this.style.display='none'; this.nextElementSibling.style.display='block';" 
+                             onload="console.log('图片加载成功:', '${url}'); this.style.display='block'; this.nextElementSibling.style.display='none';">
+                        <div class="image-error" style="display: none;">
+                            <i class="fas fa-image text-muted"></i>
+                            <small class="text-muted">图片加载失败</small>
+                            <br><a href="${url}" target="_blank" class="text-primary small">查看原图</a>
+                        </div>
+                    `;
+                    
+                    streamingText.appendChild(imageContainer);
+                    
+                    // 为图片添加点击事件
+                    const img = imageContainer.querySelector('.answer-image');
+                    if (img) {
+                        img.addEventListener('click', function() {
+                            showImageModal(this.src);
+                        });
+                    }
+                    
+                    // 更新当前位置到URL结束处
+                    currentPos = urlIndex + url.length;
+                }
+            }
+            
+            // 输出最后一个URL后剩余的文本
+            if (currentPos < fullText.length) {
+                const remainingText = fullText.substring(currentPos);
+                console.log('添加剩余文本:', JSON.stringify(remainingText));
+                const textNode = document.createTextNode(remainingText);
+                streamingText.appendChild(textNode);
+            }
+            
+            // 添加流式光标
+            const cursor = document.createElement('span');
+            cursor.className = 'streaming-cursor';
+            cursor.textContent = '|';
+            streamingText.appendChild(cursor);
+            
+            // 自动滚动
+            streamingText.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            
+            console.log('=== renderCompleteTextWithUrls 结束 ===');
+        }
+
+        // 向流式文本中添加纯文本
+        function appendTextToStream(text) {
+            if (!text || text.length === 0) return;
+            
+            const streamingText = document.querySelector('.streaming-text');
+            if (!streamingText) return;
+            
+            console.log('添加文本:', text);
+            
+            // 移除光标
+            const cursor = streamingText.querySelector('.streaming-cursor');
+            if (cursor) {
+                cursor.remove();
+            }
+            
+            // 添加文本节点
+            const textNode = document.createTextNode(text);
+            streamingText.appendChild(textNode);
+            
+            // 重新添加光标
+            const newCursor = document.createElement('span');
+            newCursor.className = 'streaming-cursor';
+            newCursor.textContent = '|';
+            streamingText.appendChild(newCursor);
+            
+            // 自动滚动
+            streamingText.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+        
+        // 向流式文本中添加图片
+        function appendImageToStream(imageUrl) {
+            console.log('=== appendImageToStream 开始 ===');
+            console.log('传入的imageUrl:', JSON.stringify(imageUrl));
+            console.log('imageUrl类型:', typeof imageUrl);
+            console.log('imageUrl长度:', imageUrl ? imageUrl.length : 'undefined');
+            
+            const streamingText = document.querySelector('.streaming-text');
+            if (!streamingText) {
+                console.error('找不到 .streaming-text 元素');
+                return;
+            }
+            
+            console.log('找到streamingText元素');
+
+            try {
+                // 验证URL格式
+                const urlObj = new URL(imageUrl);
+                console.log('URL验证成功:', urlObj.href);
+                
+                // 移除光标
+                const cursor = streamingText.querySelector('.streaming-cursor');
+                if (cursor) {
+                    cursor.remove();
+                    console.log('移除了流式光标');
+                } else {
+                    console.log('没有找到流式光标');
+                }
+
+                // 创建图片容器
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'answer-image-container';
+                console.log('创建图片容器，URL:', imageUrl);
+                
+                imageContainer.innerHTML = `
+                    <img src="${imageUrl}" class="answer-image" alt="图片" 
+                         onerror="console.error('图片加载失败:', '${imageUrl}'); this.style.display='none'; this.nextElementSibling.style.display='block';" 
+                         onload="console.log('图片加载成功:', '${imageUrl}'); this.style.display='block'; this.nextElementSibling.style.display='none';">
+                    <div class="image-error" style="display: none;">
+                        <i class="fas fa-image text-muted"></i>
+                        <small class="text-muted">图片加载失败</small>
+                        <br><a href="${imageUrl}" target="_blank" class="text-primary small">查看原图</a>
+                    </div>
+                `;
+                
+                // 添加到流式文本中
+                streamingText.appendChild(imageContainer);
+                console.log('图片容器已添加到streamingText');
+                
+                // 为图片添加点击事件
+                const img = imageContainer.querySelector('.answer-image');
+                if (img) {
+                    img.addEventListener('click', function() {
+                        console.log('图片被点击:', this.src);
+                        showImageModal(this.src);
+                    });
+                    console.log('为图片添加了点击事件');
+                } else {
+                    console.error('找不到图片元素');
+                }
+                
+                // 重新添加光标
+                const newCursor = document.createElement('span');
+                newCursor.className = 'streaming-cursor';
+                newCursor.textContent = '|';
+                streamingText.appendChild(newCursor);
+                console.log('重新添加了流式光标');
+                
+                // 自动滚动
+                streamingText.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                console.log('触发了自动滚动');
+                
+                console.log('=== appendImageToStream 成功结束 ===');
+            } catch (e) {
+                console.error('=== appendImageToStream 错误 ===');
+                console.error('URL验证失败:', imageUrl);
+                console.error('错误详情:', e);
+                console.log('将URL作为普通文本添加');
+                appendTextToStream(imageUrl);
+            }
+        }
+        
+        // 完成流式答案（只更新元数据，不重复输出内容）
+        function completeStreamingAnswer(data) {
+            console.log('更新答案元数据，不处理内容');
+            
+            // 先更新进度到100%
+            updateProgress(100, '答案生成完成');
+            
+            // 更新置信度等信息
+            if (data.confidence !== undefined) {
+                document.getElementById('confidenceBadge').textContent = `置信度: ${(data.confidence * 100).toFixed(1)}%`;
+            }
+            if (data.used_sources && data.used_sources.length > 0) {
+                document.getElementById('sourceCount').textContent = data.used_sources.length;
+                document.getElementById('sourceList').textContent = data.used_sources.join(', ');
+            }
+            
+            // 移除流式光标，完成显示
+            const streamingText = document.querySelector('.streaming-text');
+            if (streamingText) {
+                const cursor = streamingText.querySelector('.streaming-cursor');
+                if (cursor) {
+                    cursor.remove();
+                    console.log('移除流式光标');
+                }
+                
+                // 将streaming-text类改为final类
+                streamingText.className = 'streaming-text-final';
+                console.log('更改为最终文本类');
+            }
+            
+            // 延迟隐藏进度条，让用户看到100%完成状态
+            setTimeout(() => {
+                hideProgress();
+                currentQuerySession = null;
+                console.log('流式生成完全结束，会话已清理');
+            }, 1000);
+            
+            console.log('流式答案完成，元数据已更新');
+        }
+
+        // 全局错误处理
+        window.addEventListener('error', function(event) {
+            console.error('=== 全局JavaScript错误捕获 ===');
+            console.error('错误消息:', event.message);
+            console.error('错误文件:', event.filename);
+            console.error('错误行号:', event.lineno);
+            console.error('错误列号:', event.colno);
+            console.error('错误对象:', event.error);
+            console.error('错误堆栈:', event.error ? event.error.stack : '无堆栈信息');
+            
+            // 如果是substring错误，显示详细信息
+            if (event.message && event.message.includes('substring is not a function')) {
+                console.error('=== 发现substring错误，详细调试信息 ===');
+                console.error('- currentQuerySession:', currentQuerySession);
+                console.error('- accumulatedText:', accumulatedText);
+                console.error('- accumulatedText类型:', typeof accumulatedText);
+                console.error('- accumulatedText长度:', accumulatedText ? accumulatedText.length : 'null/undefined');
+                console.error('- processedTextLength:', processedTextLength);
+                console.error('- progressTimer:', progressTimer);
+                
+                // 检查DOM状态
+                const streamingText = document.querySelector('.streaming-text');
+                console.error('- .streaming-text元素存在:', !!streamingText);
+                const answerContent = document.getElementById('answerContent');
+                console.error('- answerContent元素存在:', !!answerContent);
+                
+                // 显示友好的错误信息
+                showError('系统处理数据时出现错误，请刷新页面后重试');
+                hideProgress();
+                currentQuerySession = null;
+                
+                // 重置相关变量
+                accumulatedText = '';
+                processedTextLength = 0;
+                
+                // 阻止默认的错误处理
+                event.preventDefault();
+                return false;
+            }
+            
+            // 其他类型的错误
+            console.error('=== 其他JavaScript错误 ===');
+            console.error('当前函数调用栈:', new Error().stack);
+        });
+        
+        // 全局Promise拒绝处理
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('=== 未处理的Promise拒绝 ===');
+            console.error('拒绝原因:', event.reason);
+            console.error('拒绝类型:', typeof event.reason);
+            
+            if (event.reason && event.reason.message) {
+                console.error('拒绝消息:', event.reason.message);
+                console.error('拒绝堆栈:', event.reason.stack);
+                
+                if (event.reason.message.includes('substring is not a function')) {
+                    console.error('=== Promise中的substring错误 ===');
+                    console.error('当前状态:');
+                    console.error('- currentQuerySession:', currentQuerySession);
+                    console.error('- accumulatedText:', accumulatedText);
+                    
+                    showError('数据处理错误，请重试');
+                    hideProgress();
+                    currentQuerySession = null;
+                    
+                    // 重置相关变量
+                    accumulatedText = '';
+                    processedTextLength = 0;
+                    
+                    event.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
