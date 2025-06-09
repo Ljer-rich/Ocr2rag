@@ -122,7 +122,7 @@
    
    ```python
    # 找到这行代码并修改:
-   dashscope.api_key = "sk-0609abfbca8d4ccb83e86a108da89859"  # 替换这个示例密钥
+   dashscope.api_key = ""  # 替换这个示例密钥
    
    # 改为你的真实API密钥:
    dashscope.api_key = "your-real-api-key-here"
